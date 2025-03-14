@@ -1,0 +1,255 @@
+{% extends 'Admin/base.html' %}
+
+{% block title %}Manage Reviews{% endblock %}
+
+{% block extra_css %}
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.dataTables.min.css">
+
+<style>
+    .reviews-container {
+        padding: 0;
+    }
+
+    .card-header {
+        margin-bottom: 24px;
+    }
+
+    .card-header h2 {
+        color: var(--primary-color);
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .card-header p {
+        color: var(--text-color);
+        margin: 8px 0 0 0;
+    }
+
+    /* DataTable Styling */
+    .table-responsive {
+        margin: 0 -24px;
+        padding: 0 24px;
+        overflow-x: auto;
+    }
+
+    #reviewTable {
+        width: 100% !important;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    #reviewTable thead th {
+        background-color: var(--light-bg);
+        color: var(--primary-color);
+        font-weight: 600;
+        padding: 12px 16px;
+        border: none;
+    }
+
+    #reviewTable tbody td {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--light-bg);
+        color: var(--text-color);
+    }
+
+    /* Score and Sentiment Badges */
+    .score-badge {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.9em;
+    }
+
+    .sentiment-badge {
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-size: 0.9em;
+        font-weight: 500;
+    }
+
+    .sentiment-badge.positive {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    .sentiment-badge.negative {
+        background-color: #f44336;
+        color: white;
+    }
+
+    .sentiment-badge.neutral {
+        background-color: #FF9800;
+        color: white;
+    }
+
+    /* DataTables Buttons Styling */
+    .dt-buttons {
+        margin-bottom: 20px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .dt-button {
+        background-color: var(--primary-color) !important;
+        color: white !important;
+        border: none !important;
+        padding: 8px 16px !important;
+        border-radius: 4px !important;
+        font-size: 0.9em !important;
+        transition: background-color 0.3s !important;
+    }
+
+    .dt-button:hover {
+        background-color: var(--secondary-color) !important;
+        color: white !important;
+    }
+
+    /* Search Box Styling */
+    .dataTables_filter input {
+        border: 1px solid var(--light-bg) !important;
+        border-radius: 4px !important;
+        padding: 6px 12px !important;
+        margin-left: 8px !important;
+    }
+
+    /* Delete Button */
+    .delete-btn {
+        color: #f44336;
+        transition: color 0.3s;
+    }
+
+    .delete-btn:hover {
+        color: #d32f2f;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="reviews-container">
+    <div class="card">
+        <div class="card-header">
+            <h2>Review Management</h2>
+        </div>
+        
+        <div class="table-responsive">
+            <table id="reviewTable" class="display nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Dish</th>
+                        <th>Message</th>
+                        <th>Score</th>
+                        <th>Sentiment</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for feedback in feedbacks %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ feedback.name }}</td>
+                        <td>{{ feedback.email }}</td>
+                        <td>{{ feedback.phone }}</td>
+                        <td>{{ feedback.menu_item.name|default:"Not Assigned" }}</td>
+                        <td>{{ feedback.message }}</td>
+                        <td><span class="score-badge">{{ feedback.review_scores }}</span></td>
+                        <td>
+                            <span class="sentiment-badge {{ feedback.review_sentiment|lower }}">
+                                {{ feedback.review_sentiment }}
+                            </span>
+                        </td>
+                        <td>{{ feedback.created_at|date:"F d, Y" }}</td>
+                        <td>
+                            <a href="{% url 'delete_feedback' feedback.id %}" 
+                               class="delete-btn"
+                               onclick="return confirm('Are you sure you want to delete this feedback?');">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>                
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Required DataTables Scripts -->
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.4.1/js/dataTables.responsive.min.js"></script>
+
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.0/css/jquery.dataTables.min.css">
+
+<!-- DataTables Buttons CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+
+<script>
+$(document).ready(function() {
+    $('#reviewTable').DataTable({
+        responsive: true,
+        dom: 'Bfrtip',
+        lengthMenu: [
+            [10, 25, 50, -1],
+            ['10 rows', '25 rows', '50 rows', 'Show all']
+        ],
+        buttons: [
+            'pageLength',
+            {
+                extend: 'copy',
+                text: '<i class="fas fa-copy"></i> Copy'
+            },
+            {
+                extend: 'csv',
+                text: '<i class="fas fa-file-csv"></i> CSV'
+            },
+            {
+                extend: 'excel',
+                text: '<i class="fas fa-file-excel"></i> Excel'
+            },
+            {
+                extend: 'pdf',
+                text: '<i class="fas fa-file-pdf"></i> PDF'
+            },
+            {
+                extend: 'print',
+                text: '<i class="fas fa-print"></i> Print'
+            },
+            {
+                extend: 'colvis',
+                text: '<i class="fas fa-columns"></i> Columns'
+            }
+        ],
+        columnDefs: [
+            { responsivePriority: 1, targets: [0, 1, -1] },
+            { responsivePriority: 2, targets: [5, 6] },
+            { responsivePriority: 3, targets: '_all' }
+        ],
+        order: [[0, 'asc']],
+        language: {
+            search: "Search:",
+            searchPlaceholder: "Filter records..."
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,473 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodTruck - Fast, Delicious, and Local!</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .hero-section {
+            height: 100vh;
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
+                        url('{% static "images/food-truck.jpg" %}') center/cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+        }
+        .menu-item {
+            transition: transform 0.3s;
+        }
+        
+        .menu-item:hover {
+            transform: scale(1.05);
+        }
+        
+        .carousel-item img {
+            height: 400px;
+            object-fit: cover;
+        }
+        
+        .navbar {
+            background-color: rgba(255,255,255,0.95);
+        }
+        
+        .feedback-section {
+            background-color: #f8f9fa;
+            padding: 4rem 0;
+        }
+        .carousel-caption h5 {
+            color: white; /* Ensures readability */
+            font-size: 24px; /* Adjust size as needed */
+            font-weight: bold; /* Makes the text more prominent */
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7); /* Adds a shadow for contrast */
+            background: rgba(0, 0, 0, 0.5); /* Semi-transparent background for better visibility */
+            padding: 10px; /* Adds spacing */
+            border-radius: 5px; /* Softens edges */
+            display: inline-block; /* Keeps it wrapped neatly */
+        }
+        .carousel-caption p {
+            color: white; /* Ensures readability */
+            font-size: 15px; /* Adjust size as needed */
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7); /* Adds a shadow for contrast */
+            background: rgba(0, 0, 0, 0.5); /* Semi-transparent background for better visibility */
+            padding: 5px; /* Adds spacing */
+            border-radius: 5px; /* Softens edges */
+            display: inline-block; /* Keeps it wrapped neatly */
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">FoodTruck</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#menu">Menu</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#feedback">Feedback</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Admin</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero-section">
+        <div class="container">
+            <h1 class="display-1 mb-4">FoodTruck</h1>
+            <p class="lead mb-4">Fast, Delicious, and Local!</p>
+            <a href="#menu" class="btn btn-success btn-lg">View Menu</a>
+            <a href="#feedback" class="btn btn-success btn-lg">Add Review</a>
+        </div>
+    </section>
+
+    <!-- Menu Carousel -->
+   <section id="menu" class="py-5">
+      <div class="container">
+         <h2 class="text-center mb-5">The Main Courses</h2>
+         <div id="menuCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-indicators">
+                  {% for item in main_course_items %}
+                     <button type="button" data-bs-target="#menuCarousel" data-bs-slide-to="{{ forloop.counter0 }}" class="{% if forloop.first %}active{% endif %}"></button>
+                  {% endfor %}
+            </div>
+            <div class="carousel-inner">
+               {% for item in main_course_items %}
+                   <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                     <img src="{{ item.image.url }}" class="d-block w-100" alt="{{ item.name }}"
+                     onerror="this.onerror=null; this.src='{{ item.default.jpeg }}'">                
+                       <div class="carousel-caption">
+                           <h5>{{ item.name }}</h5><br>
+                        </div>
+                   </div>
+               {% endfor %}
+           </div>           
+            <button class="carousel-control-prev" type="button" data-bs-target="#menuCarousel" data-bs-slide="prev">
+                  <span class="carousel-control-prev-icon"></span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#menuCarousel" data-bs-slide="next">
+                  <span class="carousel-control-next-icon"></span>
+            </button>
+         </div>
+      </div>
+   </section>
+
+
+  <!-- Menu List -->
+  <section class="py-5 bg-light">
+   <div class="container">
+       <h2 class="text-center mb-5">Our Menu</h2>
+       <div class="row g-4">
+           {% for item in menu_items %}
+           <div class="col-md-6 col-lg-4">
+               <div class="card menu-item h-100">
+                   {% if item.image %}
+                       <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.name }}">
+                   {% else %}
+                       <img src="{% static 'menu_images/default.jpg' %}" class="card-img-top" alt="Default Image">
+                   {% endif %}
+                   <div class="card-body">
+                       <h5 class="card-title">{{ item.name }}</h5>
+                       <p class="card-text">{{ item.description }}</p>
+                       <p class="card-text"><strong>₹{{ item.price }}</strong></p>
+                   </div>
+               </div>
+           </div>
+           {% endfor %}
+       </div>
+   </div>
+</section>
+
+
+   <!-- Feedback Form -->
+   <section id="feedback" class="feedback-section">
+    <div class="container">
+        <h2 class="text-center mb-5">Give Your Feedback</h2>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <form method="POST" id="feedback-form">
+                    {% csrf_token %}
+                    
+                    <!-- Category Selection -->
+                    <div class="mb-3">
+                        <label for="category-dropdown" class="form-label">Select Category</label>
+                        <select class="form-control" name="category" id="category-dropdown" required>
+                            <option value="">Select Category</option>
+                            {% for category, label in CATEGORY_CHOICES %}
+                                {% if category %}
+                                    <option value="{{ category }}">{{ label }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Menu Item Selection (Filtered by Category) -->
+                    <div class="mb-3">
+                        <label for="menu-item-dropdown" class="form-label">Select Menu Item</label>
+                        <select class="form-control" name="menu_item" id="menu-item-dropdown" required>
+                            <option value="">Select Menu Item</option>
+                        </select>
+                    </div>
+
+                    <!-- User Details -->
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Your Name</label>
+                        <input type="text" class="form-control" name="name" id="name" placeholder="Your Name" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Your Email</label>
+                        <input type="email" class="form-control" name="email" id="email" placeholder="Your Email">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Your Phone Number</label>
+                        <input type="text" class="form-control" name="phone" id="phone" placeholder="Your Phone Number" required>
+                    </div>
+
+                    <!-- Feedback Message -->
+                    <div class="mb-3">
+                        <label for="message" class="form-label">Your Feedback</label>
+                        <textarea class="form-control" name="message" id="message" rows="5" placeholder="Your Feedback" onclick=isGibberish() required></textarea>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-success btn-lg">Submit Feedback</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- jQuery & AJAX Script -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#category-dropdown').change(function () {
+            var category = $(this).val();
+            if (category) {
+                $.ajax({
+                    url: "{% url 'get_menu_items' %}",
+                    data: { 'category': category },
+                    success: function (data) {
+                        var menuDropdown = $('#menu-item-dropdown');
+                        menuDropdown.empty().append('<option value="">Select Menu Item</option>');
+                        $.each(data.menu_items, function (index, item) {
+                            menuDropdown.append('<option value="' + item.id + '">' + item.name + '</option>');
+                        });
+                    }
+                });
+            } else {
+                $('#menu-item-dropdown').empty().append('<option value="">Select Menu Item</option>');
+            }
+        });
+
+        // Function to show alert messages
+        function showAlert(message, type) {
+            // Create alert container
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.role = 'alert';
+            
+            // Add message content
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            // Add to the page - at the top of the body
+            document.body.insertBefore(alertDiv, document.body.firstChild);
+            
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                alertDiv.classList.remove('show');
+                setTimeout(() => alertDiv.remove(), 300);
+            }, 5000);
+        }
+
+        // Capture Django messages and display them
+        document.addEventListener('DOMContentLoaded', function() {
+            {% if messages %}
+                {% for message in messages %}
+                    showAlert("{{ message }}", "{{ message.tags }}");
+                {% endfor %}
+            {% endif %}
+        });
+
+        // Style the alerts to stick to the top of the page
+        const style = document.createElement('style');
+        style.textContent = `
+            .alert {
+                position: fixed;
+                top: 70px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 9999;
+                min-width: 300px;
+                max-width: 80%;
+                text-align: center;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            }
+            .alert-success {
+                background-color: #d4edda;
+                border-color: #c3e6cb;
+                color: #155724;
+            }
+            .alert-error, .alert-danger {
+                background-color: #f8d7da;
+                border-color: #f5c6cb;
+                color: #721c24;
+            }
+            .alert-warning {
+                background-color: #fff3cd;
+                border-color: #ffeeba;
+                color: #856404;
+            }
+            .alert-info {
+                background-color: #d1ecf1;
+                border-color: #bee5eb;
+                color: #0c5460;
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Add function to manually trigger alerts from other scripts
+        window.showMessage = function(message, type) {
+            showAlert(message, type || 'info');
+        };
+
+        // Update form submission to include gibberish check
+            document.getElementById('feedback-form').addEventListener('submit', function(event) {
+                // Check for gibberish
+                const messageText = $('#message').val();
+                if (isGibberish(messageText)) {
+                    event.preventDefault();
+                    return;
+                }
+                
+                // The existing validation
+                const isValid = validateForm();
+                if (isValid) {
+                    localStorage.setItem('pendingMessage', 'Thank you for your feedback!');
+                    localStorage.setItem('pendingMessageType', 'success');
+                } else {
+                    event.preventDefault();
+                }
+            });
+        // Check for pending messages (for redirects)
+        const pendingMessage = localStorage.getItem('pendingMessage');
+        const pendingMessageType = localStorage.getItem('pendingMessageType');
+        if (pendingMessage) {
+            showAlert(pendingMessage, pendingMessageType || 'info');
+            localStorage.removeItem('pendingMessage');
+            localStorage.removeItem('pendingMessageType');
+        }
+        $('#message').on('blur', function() {
+        var messageText = $(this).val();
+        if (messageText.trim() !== '') {
+            isGibberish(messageText);
+        }
+    });
+        // Move the form validation logic into a separate function
+        function validateForm() {
+            let isValid = true;
+
+            // Validate category
+            if ($('#category-dropdown').val() === '') {
+                showAlert("Please select a category.", "warning");
+                isValid = false;
+            }
+
+            // Validate menu item
+            if ($('#menu-item-dropdown').val() === '') {
+                showAlert("Please select a menu item.", "warning");
+                isValid = false;
+            }
+
+            // Validate phone number (10 digits)
+            var phone = $('#phone').val();
+            if (!/^\d{10}$/.test(phone)) {
+                showAlert("Please enter a valid 10-digit phone number.", "warning");
+                isValid = false;
+            }
+
+            // Validate email (optional)
+            var email = $('#email').val();
+            if (email !== '' && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
+                showAlert("Please enter a valid email address.", "warning");
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        // Function to check for gibberish (checks randomness, too many consonants, or meaningless words)
+        function isGibberish(text) {
+        // If no text is provided, return false (not gibberish)
+        if (!text || text.trim() === '') return false;
+        
+        var gibberishPattern = /(.)\1{4,}/; // Repeated characters (aaaaa, sssss)
+        var excessiveConsonants = /[^aeiou\s]{5,}/i; // Too many consonants in a row (dfghjk)
+        
+        // Common words used in feedback
+        var commonWords = [
+            "good", "bad", "excellent", "nice", "terrible", "love", "hate", "amazing", 
+            "horrible", "best", "worst", "okay", "great", "awesome", "awful", "fantastic", 
+            "poor", "wonderful", "satisfying", "unsatisfactory", "decent", "friendly", 
+            "helpful", "rude", "delicious", "tasty", "disgusting", "slow", "fast", 
+            "efficient", "clean", "dirty", "comfortable", "uncomfortable", "pleasant", 
+            "unpleasant", "professional", "unprofessional", "polite", "impolite", 
+            "welcoming", "unwelcoming", "affordable", "expensive", "cheap", "reasonable", 
+            "overpriced", "underwhelming", "impressive", "memorable", "forgettable", 
+            "recommend", "recommended", "not recommended", "trustworthy", "untrustworthy", 
+            "amazing", "fantastic", "superb", "friendly", "attentive", "unhelpful", "rushed", 
+            "delayed", "on time", "quick", "slow", "supportive", "disappointing", 
+            "satisfying", "excellent service", "poor service", "loved it", "hated it",
+            "food", "service", "portion", "taste", "flavor", "quality", "price", "value",
+            "menu", "order", "experience", "enjoy", "enjoyed", "like", "liked", "love",
+            "visit", "visited", "return", "try", "tried", "staff", "waiter", "waitress",
+            "chef", "cook", "fresh", "stale", "hot", "cold", "warm", "spicy", "bland"
+        ];
+        
+        // Common stopwords (shouldn't be counted as gibberish)
+        var stopwords = [
+            "the", "a", "an", "and", "or", "but", "because", "as", "until", "while", 
+            "of", "at", "by", "for", "with", "about", "against", "between", "into", 
+            "through", "during", "before", "after", "above", "below", "to", "from", 
+            "up", "down", "in", "out", "on", "off", "over", "under", "again", "further", 
+            "then", "once", "here", "there", "when", "where", "why", "how", "all", "any", 
+            "both", "each", "few", "more", "most", "other", "some", "such", "no", "nor", 
+            "not", "only", "own", "same", "so", "than", "too", "very", "can", "will", 
+            "just", "should", "now", "i", "me", "my", "myself", "we", "our", "ours", 
+            "ourselves", "you", "your", "yours", "yourself", "yourselves", "he", "him", 
+            "his", "himself", "she", "her", "hers", "herself", "it", "its", "itself", 
+            "they", "them", "their", "theirs", "themselves", "what", "which", "who", 
+            "whom", "this", "that", "these", "those", "am", "is", "are", "was", "were", 
+            "be", "been", "being", "have", "has", "had", "having", "do", "does", "did", 
+            "doing", "would", "could", "should", "ought", "i'm", "you're", "he's", 
+            "she's", "it's", "we're", "they're", "i've", "you've", "we've", "they've", 
+            "i'd", "you'd", "he'd", "she'd", "we'd", "they'd", "i'll", "you'll", "he'll", 
+            "she'll", "we'll", "they'll", "isn't", "aren't", "wasn't", "weren't", "hasn't", 
+            "haven't", "hadn't", "doesn't", "don't", "didn't", "won't", "wouldn't", 
+            "shan't", "shouldn't", "can't", "cannot", "couldn't", "mustn't", "let's", 
+            "that's", "who's", "what's", "here's", "there's", "when's", "where's", "why's", 
+            "how's", "everyone", "everything", "everyone", "everywhere", "here", "there"
+        ];
+
+        // Split text into words
+        var words = text.toLowerCase().split(/\s+/);
+        
+        // Check if gibberish patterns are present
+        if (gibberishPattern.test(text) || excessiveConsonants.test(text)) {
+            showAlert("Please provide meaningful feedback.", "warning");
+            return true;
+        }
+        
+        // Filter out stopwords and check for meaningful words
+        var meaningfulWords = words.filter(word => 
+            word.length > 1 && !stopwords.includes(word)
+        );
+        
+        // If there are no meaningful words (only stopwords), it's gibberish
+        if (meaningfulWords.length === 0 && words.length > 0) {
+            showAlert("Please provide meaningful feedback.", "warning");
+            return true;
+        }
+        
+        // Check if any meaningful words are in the common words list
+        var validWords = meaningfulWords.filter(word => commonWords.includes(word));
+        
+        // If the text has meaningful words but none match common feedback words,
+        // still consider it potentially valid (it might be using different vocabulary)
+        if (words.length > 5 && validWords.length === 0) {
+            // Only consider it gibberish if it's a short message with no valid words
+            if (words.length < 6) {
+                showAlert("Please provide more detailed feedback.", "warning");
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    });
+</script>
+
+
+
+    <footer class="bg-dark text-white py-4">
+      <div class="container text-center">
+          <p>© 2025 FoodTruck. All rights reserved.</p>
+      </div>
+  </footer>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

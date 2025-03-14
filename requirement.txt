@@ -1,0 +1,4 @@
+Django==4.2.5         
+nltk==3.8.1           # For sentiment analysis (VADER lexicon)
+Pillow==11.1.0
+pip install requests==2.31.0

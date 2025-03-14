@@ -1,0 +1,856 @@
+{% extends 'Admin/base.html' %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Dashboard Header with Quick Stats -->
+    <div class="dashboard-header">
+        <h2 class="dashboard-title">Restaurant Analytics Dashboard</h2>
+        <div class="quick-stats">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-utensils"></i>
+                </div>
+                <div class="stat-content">
+                    <p class="stat-value">{{ total_menu_items }}</p>
+                    <p class="stat-label">Total Menu Items</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <p class="stat-value">{{ available_items }}</p>
+                    <p class="stat-label">Available Items</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <div class="stat-content">
+                    <p class="stat-value">{{ total_feedback }}</p>
+                    <p class="stat-label">Total Feedback</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="stat-content">
+                    <p class="stat-value">{{ avg_review_score }}</p>
+                    <p class="stat-label">Avg. Rating</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Grid -->
+    <div class="dashboard-grid">
+        <!-- Primary Charts (Larger and More Prominent) -->
+        <div class="chart-container primary-chart">
+            <div class="chart-header">
+                <i class="fas fa-chart-line"></i>
+                <h3>Monthly Feedback Trend</h3>
+            </div>
+            <div class="chart-body">
+                <canvas id="feedbackTrend"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-container primary-chart">
+            <div class="chart-header">
+                <i class="fas fa-medal"></i>
+                <h3>Top Rated Menu Items</h3>
+            </div>
+            <div class="chart-body">
+                <canvas id="topItems"></canvas>
+            </div>
+        </div>
+
+        <!-- Secondary Charts -->
+        <div class="chart-container">
+            <div class="chart-header">
+                <i class="fas fa-th-large"></i>
+                <h3>Items by Category</h3>
+            </div>
+            <div class="chart-body">
+                <canvas id="barGraph"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <div class="chart-header">
+                <i class="fas fa-smile"></i>
+                <h3>Customer Feedback</h3>
+            </div>
+            <div class="chart-body">
+                <canvas id="pieChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <div class="chart-header">
+                <i class="fas fa-inr"></i>
+                <h3>Price Distribution</h3>
+            </div>
+            <div class="chart-body">
+                <canvas id="priceDistribution"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <div class="chart-header">
+                <i class="fas fa-star-half-alt"></i>
+                <h3>Review Scores by Category</h3>
+            </div>
+            <div class="chart-body">
+                <canvas id="reviewScoreChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Dashboard Container */
+    .dashboard-container {
+        padding: 2rem;
+        background-color: #f8f9fa;
+        border-radius: 16px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        max-width: 1800px;
+        margin: 0 auto;
+    }
+
+    /* Dashboard Header */
+    .dashboard-header {
+        margin-bottom: 2rem;
+    }
+
+    .dashboard-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 1.5rem;
+        position: relative;
+        padding-left: 1rem;
+        border-left: 4px solid var(--primary-color);
+    }
+
+    /* Quick Stats Section */
+    .quick-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 6px;
+        height: 100%;
+        background: var(--primary-color);
+    }
+
+    .stat-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        background: rgba(93, 95, 239, 0.1);
+        margin-right: 1rem;
+    }
+
+    .stat-icon i {
+        font-size: 1.5rem;
+        color: var(--primary-color);
+    }
+
+    .stat-content {
+        flex: 1;
+    }
+
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #333;
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin: 0;
+    }
+
+    /* Main Dashboard Grid */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 1.5rem;
+    }
+
+    .chart-container {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        overflow: hidden;
+        grid-column: span 6;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .chart-container:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+
+    .primary-chart {
+        grid-column: span 12;
+        margin-bottom: 1rem;
+    }
+
+    .chart-header {
+        display: flex;
+        align-items: center;
+        padding: 1.25rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .chart-header i {
+        font-size: 1.25rem;
+        color: var(--primary-color);
+        margin-right: 0.75rem;
+    }
+
+    .chart-header h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+
+    .chart-body {
+        padding: 1.5rem;
+        height: 350px;
+        position: relative;
+    }
+
+    /* Canvas Sizing */
+    canvas {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    /* Responsive Design */
+    @media screen and (max-width: 1200px) {
+        .chart-container {
+            grid-column: span 6;
+        }
+        
+        .primary-chart {
+            grid-column: span 6;
+        }
+    }
+
+    @media screen and (max-width: 992px) {
+        .chart-container, .primary-chart {
+            grid-column: span 12;
+        }
+    }
+
+    @media screen and (max-width: 768px) {
+        .dashboard-container {
+            padding: 1rem;
+        }
+        
+        .quick-stats {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+        
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+        }
+        
+        .chart-body {
+            height: 300px;
+        }
+    }
+
+    @media screen and (max-width: 576px) {
+        .quick-stats {
+            grid-template-columns: 1fr 1fr;
+        }
+        
+        .chart-body {
+            height: 250px;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Apply smooth scrolling for better UX
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+        
+        // Create animated chart load
+        const chartContainers = document.querySelectorAll('.chart-container');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-in');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.1
+        });
+        
+        chartContainers.forEach(container => {
+            observer.observe(container);
+        });
+        
+        // Chart animations config
+        const chartAnimationConfig = {
+            duration: 800,
+            easing: 'easeOutQuart'
+        };
+        
+        // Load chart data
+        fetch("{% url 'get_chart_data' %}")
+        .then(response => response.json())
+        .then(data => {
+            // Color palette for consistency
+            const colorPalette = {
+                primary: 'rgba(93, 95, 239, 1)',
+                primaryLight: 'rgba(93, 95, 239, 0.2)',
+                secondary: 'rgba(255, 99, 132, 1)',
+                secondaryLight: 'rgba(255, 99, 132, 0.2)',
+                success: 'rgba(76, 175, 80, 1)',
+                successLight: 'rgba(76, 175, 80, 0.2)',
+                warning: 'rgba(255, 152, 0, 1)',
+                warningLight: 'rgba(255, 152, 0, 0.2)',
+                info: 'rgba(33, 150, 243, 1)',
+                infoLight: 'rgba(33, 150, 243, 0.2)',
+                chart1: 'rgba(66, 135, 245, 1)',
+                chart1Light: 'rgba(66, 135, 245, 0.6)',
+                chart2: 'rgba(156, 39, 176, 1)',
+                chart2Light: 'rgba(156, 39, 176, 0.2)',
+            };
+            
+            // 1. Monthly Feedback Trend - Enhanced Line Chart
+            new Chart(document.getElementById('feedbackTrend'), {
+                type: 'line',
+                data: {
+                    labels: data.monthly_feedback.months,
+                    datasets: [{
+                        label: 'Monthly Feedback',
+                        data: data.monthly_feedback.counts,
+                        borderColor: colorPalette.primary,
+                        backgroundColor: colorPalette.primaryLight,
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: colorPalette.primary,
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animations: {
+                        tension: {
+                            duration: 1000,
+                            easing: 'linear'
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                boxWidth: 12,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.7)',
+                            padding: 10,
+                            titleFont: {
+                                size: 14
+                            },
+                            bodyFont: {
+                                size: 13
+                            },
+                            displayColors: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0,
+                                font: {
+                                    size: 11
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 2. Top Rated Items - Horizontal Bar Chart
+            const topItemLabels = data.top_rated_items.map(item => item.menu_item__name);
+            const topItemScores = data.top_rated_items.map(item => item.avg_score);
+
+            new Chart(document.getElementById('topItems'), {
+                type: 'bar',
+                data: {
+                    labels: topItemLabels,
+                    datasets: [{
+                        label: 'Rating',
+                        data: topItemScores,
+                        backgroundColor: colorPalette.warningLight,
+                        borderColor: colorPalette.warning,
+                        borderWidth: 2,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    animations: chartAnimationConfig,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.7)',
+                            padding: 10,
+                            callbacks: {
+                                label: function(context) {
+                                    return `Rating: ₹{context.parsed.x}/5`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: 5,
+                            ticks: {
+                                stepSize: 1,
+                                font: {
+                                    size: 11
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 3. Orders By Category - Vertical Bar Chart
+            const categoryLabels = data.category_counts.map(item => item.category);
+            const categoryData = data.category_counts.map(item => item.total);
+
+            new Chart(document.getElementById('barGraph'), {
+                type: 'bar',
+                data: {
+                    labels: categoryLabels,
+                    datasets: [{
+                        label: 'Items per Category',
+                        data: categoryData,
+                        backgroundColor: colorPalette.chart1Light,
+                        borderColor: colorPalette.chart1,
+                        borderWidth: 2,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animations: chartAnimationConfig,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0,
+                                font: {
+                                    size: 11
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 4. Customer Feedback - Doughnut Chart (instead of pie for more modern look)
+            const sentimentLabels = data.sentiment_counts.map(item => item.review_sentiment || 'No sentiment');
+            const sentimentData = data.sentiment_counts.map(item => item.total);
+
+            new Chart(document.getElementById('pieChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: sentimentLabels,
+                    datasets: [{
+                        data: sentimentData,
+                        backgroundColor: [
+                            colorPalette.success,
+                            colorPalette.secondary,
+                            colorPalette.warning,
+                            'rgba(158, 158, 158, 0.7)'
+                        ],
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animations: {
+                        animateRotate: true,
+                        animateScale: true
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 15,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.7)',
+                            padding: 10,
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const value = context.parsed;
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `₹{context.label}: ₹{value} (₹{percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '60%'
+                }
+            });
+
+            // 5. Price Distribution - Grouped Bar Chart
+            const priceLabels = data.price_distribution.map(item => item.category);
+            
+            new Chart(document.getElementById('priceDistribution'), {
+                type: 'bar',
+                data: {
+                    labels: priceLabels,
+                    datasets: [
+                        {
+                            label: 'Avg Price',
+                            data: data.price_distribution.map(item => item.avg_price),
+                            backgroundColor: colorPalette.infoLight,
+                            borderColor: colorPalette.info,
+                            borderWidth: 2,
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'Min Price',
+                            data: data.price_distribution.map(item => item.min_price),
+                            backgroundColor: colorPalette.successLight,
+                            borderColor: colorPalette.success,
+                            borderWidth: 2,
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'Max Price',
+                            data: data.price_distribution.map(item => item.max_price),
+                            backgroundColor: colorPalette.secondaryLight,
+                            borderColor: colorPalette.secondary,
+                            borderWidth: 2,
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animations: chartAnimationConfig,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                boxWidth: 12,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.7)',
+                            padding: 10,
+                            callbacks: {
+                                label: function(context) {
+                                    return `₹{context.dataset.label}: ₹₹{context.parsed.y.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Price (₹)',
+                                font: {
+                                    size: 12,
+                                    weight: 'bold'
+                                }
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                },
+                                callback: function(value) {
+                                    return '₹' + value;
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 6. Review Scores by Category - Radar Chart
+            const reviewLabels = data.category_avg_reviews.map(item => item.menu_item__category || 'Uncategorized');
+            const reviewData = data.category_avg_reviews.map(item => item.avg_score);
+
+            new Chart(document.getElementById('reviewScoreChart'), {
+                type: 'radar',
+                data: {
+                    labels: reviewLabels,
+                    datasets: [{
+                        label: 'Average Review Score',
+                        data: reviewData,
+                        backgroundColor: colorPalette.chart2Light,
+                        borderColor: colorPalette.chart2,
+                        borderWidth: 2,
+                        pointBackgroundColor: colorPalette.chart2,
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: colorPalette.chart2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animations: {
+                        tension: {
+                            duration: 1000,
+                            easing: 'linear'
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                boxWidth: 12,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.7)',
+                            padding: 10,
+                            callbacks: {
+                                label: function(context) {
+                                    return `₹{context.label}: ₹{context.raw.toFixed(1)}/5`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            min: 0,
+                            max: 5,
+                            ticks: {
+                                stepSize: 1,
+                                font: {
+                                    size: 10
+                                },
+                                backdropColor: 'transparent'
+                            },
+                            pointLabels: {
+                                font: {
+                                    size: 11
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            },
+                            angleLines: {
+                                color: 'rgba(0,0,0,0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching chart data:', error);
+            
+            // Show error message in each chart container
+            document.querySelectorAll('.chart-body').forEach(container => {
+                container.innerHTML = `
+                    <div class="chart-error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Failed to load chart data</p>
+                    </div>
+                `;
+            });
+        });
+    });
+</script>
+
+<style>
+    /* Additional styles for animations and enhancements */
+    .chart-container {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .chart-container.animate-in {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .chart-error {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: #dc3545;
+    }
+
+    .chart-error i {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    .chart-error p {
+        font-size: 1rem;
+    }
+
+    /* Create staggered animation delay for chart containers */
+    .chart-container:nth-child(1) { transition-delay: 0.1s; }
+    .chart-container:nth-child(2) { transition-delay: 0.2s; }
+    .chart-container:nth-child(3) { transition-delay: 0.3s; }
+    .chart-container:nth-child(4) { transition-delay: 0.4s; }
+    .chart-container:nth-child(5) { transition-delay: 0.5s; }
+    .chart-container:nth-child(6) { transition-delay: 0.6s; }
+</style>
+{% endblock %}
