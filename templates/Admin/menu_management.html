@@ -81,26 +81,25 @@
         buttons: ['copy', 'excel', 'pdf', 'print']
     });
 
-
-
-        $('.delete-menu-item').click(function() {
-            if (confirm('Are you sure you want to delete this menu item?')) {
-                const itemId = $(this).data('id'); // Corrected variable name
-                $.ajax({
-                    url: `/superadmin/menu/delete/${itemId}/`, // Replaced rowId with itemId
-                    type: 'POST',
-                    headers: { 'X-CSRFToken': '{{ csrf_token }}' },
-                    success: function() {
-                        alert('Menu item deleted successfully.');
-                        location.reload();
-                    },
-                    error: function() {
-                        alert('Error deleting menu item.');
-                    }
-                });
-            }
-        });
+    // Remove any existing click handlers before attaching a new one
+    $('.delete-menu-item').off('click').on('click', function() {
+        if (confirm('Are you sure you want to delete this menu item?')) {
+            const itemId = $(this).data('id');
+            $.ajax({
+                url: `/superadmin/menu/delete/${itemId}/`,
+                type: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                success: function() {
+                    alert('Menu item deleted successfully.');
+                    location.reload();
+                },
+                error: function() {
+                    alert('Error deleting menu item.');
+                }
+            });
+        }
     });
+});
 </script>
 {% endblock %}
 {% endblock %}
